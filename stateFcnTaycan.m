@@ -1,33 +1,43 @@
 function dxdt = stateFcnTaycan(x, u)
+% State function for Taycan vehicle dynamics model
+% Inputs:
+%   x: Current vehicle speed (m/s)
+%   u: Force input command (N)
+% Output:
+%   dxdt: Rate of change of vehicle speed (m/s^2)
 
-%% Car params
-
+%% Vehicle Parameters
+% Vehicle mass (kg)
 m = 2140;
+% Drag coefficient * Frontal area (m^2)
 CdA = 0.513;
+% Air density (kg/m^3)
 rho = 1.293;
 
+% Combined aerodynamic drag coefficient (kg/m)
 b = 0.5*CdA*rho;
 
-% Speed axis for lookup table
+% Lookup table for maximum force vs speed
+% Speed points (m/s)
 v_to_F_max_lu = [0 72];
-
-% F max for lookup table
+% Maximum force points (N) - decreases with speed
 F_max_lu = [22000 1710];
-
+% Minimum force (N) - maximum braking force
 F_min = -20000;
 
-% Assign variables
-v = x;
-F = u;
+% Extract current state and input
+v = x;  % Vehicle speed (m/s)
+F = u;  % Force command (N)
 
-% Find max force
+% Calculate speed-dependent maximum force limit
 F_max = interp1(v_to_F_max_lu, F_max_lu, v, 'linear');
 
-% Limit F
-F = min(F, F_max);
-F = max(F, F_min);
+% Apply force limits
+F = min(F, F_max);  % Limit to maximum force
+F = max(F, F_min);  % Limit to minimum force
 
-dv = (F - v^2*b)/m;
+% Calculate acceleration (F = ma + drag)
+dv = (F - v^2*b)/m;  % Net acceleration considering force and drag
 
 dxdt = dv;
 
